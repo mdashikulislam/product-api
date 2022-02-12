@@ -11,15 +11,20 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $keyword = $request->keyword;
+        $title = $request->title;
+        $barcode = $request->barcode;
+        $title = urldecode($title);
+        $barcode = urldecode($barcode);
         $allProduct = new Product();
-        if (!empty($keyword)){
-            $keyword = urldecode($keyword);
-            $allProduct = $allProduct->where('title','LIKE',"%$keyword%");
+        if (!empty($title)){
+            $allProduct = $allProduct->where('title','LIKE',"%$title%");
+        }
+        if (!empty($barcode)){
+            $allProduct = $allProduct->where('barcode','LIKE',"%$barcode%");
         }
         $allProduct = $allProduct->get();
         if (count($allProduct) < 1){
-            $data = $this->callApi($request->keyword);
+            $data = $this->callApi($title);
             $products = json_decode($data);
             if (!empty($products->products)){
                 foreach ($products->products as $key=>$item){
@@ -49,12 +54,29 @@ class ProductController extends Controller
                     $product->reviews = !empty($item->reviews) ? json_encode($item->reviews) :'';
                     $product->save();
                 }
-                $allProduct = Product::where('title','LIKE',"%$keyword%")->get();
+                $allProduct = new Product();
+                if (!empty($title)){
+                    $allProduct = $allProduct->where('title','LIKE',"%$title%");
+                }
+//                if (!empty($barcode)){
+//                    $allProduct = $allProduct->where('barcode','LIKE',"%$barcode%");
+//                }
+                $allProduct = $allProduct->get();
             }
         }
         return ProductResource::collection($allProduct);
     }
 
+    public function create(Request $request)
+    {
+        $request->contributors = !empty($item->contributors) ? json_encode($item->contributors) :'';
+        $request->features = !empty($item->features) ? json_encode($item->features) :'';
+        $request->images = !empty($item->images) ? json_encode($item->images) :'';
+        $request->stores = !empty($item->stores) ? json_encode($item->stores) :'';
+        $request->reviews = !empty($item->reviews) ? json_encode($item->reviews) :'';
+        $product = Product::create($request->all());
+        return $product;
+    }
     public function update($id,Request $request)
     {
         $product = Product::where('id',$id)->first();
