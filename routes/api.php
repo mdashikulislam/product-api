@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('product',[\App\Http\Controllers\ProductController::class,'index']);
-Route::post('product/create',[\App\Http\Controllers\ProductController::class,'create']);
-Route::post('product/update/{id}',[\App\Http\Controllers\ProductController::class,'update']);
+Route::get('product',[\App\Http\Controllers\ProductController::class,'index'])->middleware('api.secret');
+Route::get('barcode',[\App\Http\Controllers\ProductController::class,'barcode'])->middleware('api.secret');
+Route::post('product/create',[\App\Http\Controllers\ProductController::class,'create'])->middleware('api.secret');
+Route::post('product/update/{id}',[\App\Http\Controllers\ProductController::class,'update'])->middleware('api.secret');
