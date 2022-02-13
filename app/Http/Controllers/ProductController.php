@@ -12,18 +12,34 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $title = $request->title;
-        $barcode = $request->barcode;
+        $model = $request->model;
+        $category = $request->category;
+        $brand = $request->brand;
+        $manufacturer = $request->manufacturer;
+
         $title = urldecode($title);
-        $barcode = urldecode($barcode);
+        $model = urldecode($model);
+        $category = urldecode($category);
+        $brand = urldecode($brand);
+        $manufacturer = urldecode($manufacturer);
         $allProduct = new Product();
         if (!empty($title)){
             $allProduct = $allProduct->where('title','LIKE',"%$title%");
         }
-        if (!empty($barcode)){
-            $allProduct = $allProduct->where('barcode','LIKE',"%$barcode%");
+        if (!empty($model)){
+            $allProduct = $allProduct->where('model','LIKE',"%$model%");
+        }
+        if (!empty($category)){
+            $allProduct = $allProduct->where('category','LIKE',"%$category%");
+        }
+        if (!empty($brand)){
+            $allProduct = $allProduct->where('brand','LIKE',"%$brand%");
+        }
+        if (!empty($manufacturer)){
+            $allProduct = $allProduct->where('manufacturer','LIKE',"%$manufacturer%");
         }
         $allProduct = $allProduct->get();
-        if (count($allProduct) < 1){
+        if ($allProduct->isEmpty()){
             $data = $this->callApi($title);
             $products = json_decode($data);
             if (!empty($products->products)){
@@ -58,9 +74,18 @@ class ProductController extends Controller
                 if (!empty($title)){
                     $allProduct = $allProduct->where('title','LIKE',"%$title%");
                 }
-//                if (!empty($barcode)){
-//                    $allProduct = $allProduct->where('barcode','LIKE',"%$barcode%");
-//                }
+                if (!empty($model)){
+                    $allProduct = $allProduct->where('model','LIKE',"%$model%");
+                }
+                if (!empty($category)){
+                    $allProduct = $allProduct->where('category','LIKE',"%$category%");
+                }
+                if (!empty($brand)){
+                    $allProduct = $allProduct->where('brand','LIKE',"%$brand%");
+                }
+                if (!empty($manufacturer)){
+                    $allProduct = $allProduct->where('manufacturer','LIKE',"%$manufacturer%");
+                }
                 $allProduct = $allProduct->get();
             }
         }
@@ -121,7 +146,7 @@ class ProductController extends Controller
         $request->stores = !empty($item->stores) ? json_encode($item->stores) :'';
         $request->reviews = !empty($item->reviews) ? json_encode($item->reviews) :'';
         $product = Product::create($request->all());
-        return $product;
+        return new ProductResource($product);
     }
     public function update($id,Request $request)
     {
@@ -138,7 +163,7 @@ class ProductController extends Controller
         $request->stores = $request->stores ? json_encode($request->stores):'';
         $request->reviews = $request->reviews ? json_encode($request->reviews):'';
         $product->fill($request->all());
-        return response()->json($product);
+        return new ProductResource($product);
     }
     private function callApi($keyword){
         $api_key = 'rkmtw0c49xugy9k9si9v65vgwd90wb';
