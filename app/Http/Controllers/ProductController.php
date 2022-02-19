@@ -175,7 +175,7 @@ class ProductController extends Controller
     public function delete($id)
     {
         $product = Product::findOrFail($id);
-        if ($product->isEmpty()){
+        if (!$product){
             return response()->json([
                 'status'=>false,
                 'msg'=>'Product not found.'
