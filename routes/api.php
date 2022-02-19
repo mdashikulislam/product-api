@@ -21,3 +21,4 @@ Route::get('product',[\App\Http\Controllers\ProductController::class,'index'])->
 Route::get('barcode',[\App\Http\Controllers\ProductController::class,'barcode'])->middleware('api.secret');
 Route::post('product/create',[\App\Http\Controllers\ProductController::class,'create'])->middleware('api.secret');
 Route::post('product/update/{id}',[\App\Http\Controllers\ProductController::class,'update'])->middleware('api.secret');
+Route::get('product/delete/{id}',[\App\Http\Controllers\ProductController::class,'delete'])->middleware('api.secret');

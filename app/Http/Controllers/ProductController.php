@@ -171,6 +171,23 @@ class ProductController extends Controller
         $product->fill($request->all());
         return new ProductResource($product);
     }
+
+    public function delete($id)
+    {
+        $product = Product::findOrFail($id);
+        if ($product->isEmpty()){
+            return response()->json([
+                'status'=>false,
+                'msg'=>'Product not found.'
+            ]);
+        }else{
+            $product->delete();
+            return response()->json([
+                'status'=>true,
+                'msg'=>'Product delete successful.'
+            ]);
+        }
+    }
     private function callApi($keyword){
         $api_key = 'rkmtw0c49xugy9k9si9v65vgwd90wb';
         $url = 'https://api.barcodelookup.com/v3/products?search='.$keyword.'&formatted=y&key=' . $api_key;
