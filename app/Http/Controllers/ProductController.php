@@ -16,15 +16,20 @@ class ProductController extends Controller
         $category = $request->category;
         $brand = $request->brand;
         $manufacturer = $request->manufacturer;
+        $barcode = $request->barcode;
 
         $title = urldecode($title);
         $model = urldecode($model);
         $category = urldecode($category);
         $brand = urldecode($brand);
         $manufacturer = urldecode($manufacturer);
+        $barcode = urldecode($barcode);
         $allProduct = new Product();
         if (!empty($title)){
             $allProduct = $allProduct->where('title','LIKE',"%$title%");
+        }
+        if (!empty($barcode)){
+            $allProduct = $allProduct->where('barcode','LIKE',"%$barcode%");
         }
         if (!empty($model)){
             $allProduct = $allProduct->where('model','LIKE',"%$model%");
@@ -40,58 +45,59 @@ class ProductController extends Controller
         }
         $allProduct = $allProduct->get();
         if ($allProduct->isEmpty()){
-            $data = $this->callApi($title);
-            $products = json_decode($data);
-            if (!empty($products->products)){
-                foreach ($products->products as $key=>$item){
-                    $product = new Product();
-                    $product->title = $item->title ? :'';
-                    $product->mpn = $item->mpn ? :'';
-                    $product->asin = $item->asin ? :'';
-                    $product->barcode = $item->barcode_number ? :'';
-                    $product->category = $item->category ? :'';
-                    $product->manufacturer = $item->manufacturer ? :'';
-                    $product->brand = $item->brand ? :'';
-                    $product->color = $item->color ? :'';
-                    $product->gender = $item->gender ? :'';
-                    $product->material = $item->material ? :'';
-                    $product->size = $item->size ? :'';
-                    $product->length = $item->length ? :'';
-                    $product->width = $item->width ? :'';
-                    $product->height = $item->height ? :'';
-                    $product->weight = $item->weight ? :'';
-                    $product->contributors = !empty($item->contributors) ? json_encode($item->contributors) :'';
-                    $product->ingredients = $item->ingredients ? :'';
-                    $product->release_date = $item->release_date ? : null;
-                    $product->description = $item->description ? :'';
-                    $product->features = !empty($item->features) ? json_encode($item->features) :'';
-                    $product->images = !empty($item->images) ? json_encode($item->images) :'';
-                    $product->stores = !empty($item->stores) ? json_encode($item->stores) :'';
-                    $product->reviews = !empty($item->reviews) ? json_encode($item->reviews) :'';
-                    $product->save();
+            $allProduct = [];
+            if (!empty($barcode)){
+                $data = $this->callApiBarcode($barcode);
+                $products = json_decode($data);
+                if (!empty($products->products)){
+                    foreach ($products->products as $key=>$item){
+                        $product = new Product();
+                        $this->extract($product,$item);
+                        $product->save();
+                        $allProduct[] = $product;
+                    }
                 }
-                $allProduct = new Product();
-                if (!empty($title)){
-                    $allProduct = $allProduct->where('title','LIKE',"%$title%");
+            }
+            if (!empty($title) || !empty($model) || !empty($brand) || !empty($category) || !empty($manufacturer)){
+                $data = $this->callApi($title);
+                $products = json_decode($data);
+                if (!empty($products->products)){
+                    foreach ($products->products as $key=>$item){
+                        $product = new Product();
+                        $this->extract($product,$item);
+                        $product->save();
+                        $allProduct[] = $product;
+                    }
                 }
-                if (!empty($model)){
-                    $allProduct = $allProduct->where('model','LIKE',"%$model%");
-                }
-                if (!empty($category)){
-                    $allProduct = $allProduct->where('category','LIKE',"%$category%");
-                }
-                if (!empty($brand)){
-                    $allProduct = $allProduct->where('brand','LIKE',"%$brand%");
-                }
-                if (!empty($manufacturer)){
-                    $allProduct = $allProduct->where('manufacturer','LIKE',"%$manufacturer%");
-                }
-                $allProduct = $allProduct->get();
             }
         }
         return ProductResource::collection($allProduct);
     }
-
+    private function extract(Product $product,$item){
+        $product->title = $item->title ? :'';
+        $product->mpn = $item->mpn ? :'';
+        $product->asin = $item->asin ? :'';
+        $product->barcode = $item->barcode_number ? :'';
+        $product->category = $item->category ? :'';
+        $product->manufacturer = $item->manufacturer ? :'';
+        $product->brand = $item->brand ? :'';
+        $product->color = $item->color ? :'';
+        $product->gender = $item->gender ? :'';
+        $product->material = $item->material ? :'';
+        $product->size = $item->size ? :'';
+        $product->length = $item->length ? :'';
+        $product->width = $item->width ? :'';
+        $product->height = $item->height ? :'';
+        $product->weight = $item->weight ? :'';
+        $product->contributors = !empty($item->contributors) ? json_encode($item->contributors) :'';
+        $product->ingredients = $item->ingredients ? :'';
+        $product->release_date = $item->release_date ? : null;
+        $product->description = $item->description ? :'';
+        $product->features = !empty($item->features) ? json_encode($item->features) :'';
+        $product->images = !empty($item->images) ? json_encode($item->images) :'';
+        $product->stores = !empty($item->stores) ? json_encode($item->stores) :'';
+        $product->reviews = !empty($item->reviews) ? json_encode($item->reviews) :'';
+    }
     public function barcode(Request $request)
     {
         $barcode = $request->code;
@@ -167,7 +173,7 @@ class ProductController extends Controller
     }
     private function callApi($keyword){
         $api_key = 'rkmtw0c49xugy9k9si9v65vgwd90wb';
-        $url = 'https://api.barcodelookup.com/v3/products?title='.$keyword.'&formatted=y&key=' . $api_key;
+        $url = 'https://api.barcodelookup.com/v3/products?search='.$keyword.'&formatted=y&key=' . $api_key;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
