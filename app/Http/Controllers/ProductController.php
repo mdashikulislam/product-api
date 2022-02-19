@@ -174,7 +174,7 @@ class ProductController extends Controller
 
     public function delete($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::where('id',$id)->first();
         if (!$product){
             return response()->json([
                 'status'=>false,
